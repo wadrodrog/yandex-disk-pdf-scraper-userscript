@@ -46,4 +46,6 @@ https://github.com/wadrodrog/yandex-disk-pdf-scraper-userscript/raw/refs/heads/m
 Скрипт опубликован по лицензии [Unlicense](https://unlicense.org).
 Если вы нашли этот скрипт полезным и используете его где-либо ещё, просим указать ссылку на оригинальный репозиторий.
 
+Для генерации PDF используется библиотека [jsPDF](https://github.com/parallax/jsPDF), лицензия MIT.
+
 Похожий проект: https://colab.research.google.com/drive/1GY43-A2uFMahE9-zMH2-mFjPcq5w-mDa?usp=sharing
