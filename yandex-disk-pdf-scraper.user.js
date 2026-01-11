@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yandex Disk PDF Scraper
 // @namespace    http://tampermonkey.net/
-// @version      2026-01-10
+// @version      2026-01-11
 // @description  Downloads undownloadable PDFs from Yandex Disk
 // @author       wadrodrog
 // @match        https://docs.360.yandex.ru/*
@@ -17,36 +17,36 @@
 // ==/UserScript==
 
 (function() {
-    'use strict';
+  'use strict';
 
-    const url = window.location.href;
+  const url = window.location.href;
 
-    if (url.includes("/showcaptcha?")) {
-        return;
-    }
+  if (url.includes("/showcaptcha?")) {
+    return;
+  }
 
-    // download button in top toolbar & bulk download
-    if (url.startsWith("https://disk.")) {
-        addDownloadButtonInToolbar();
-        return;
-    }
+  // download button in top toolbar & bulk download
+  if (url.startsWith("https://disk.")) {
+    addDownloadButtonInToolbar();
+    return;
+  }
 
-    // download button in sidebar
-    if (url.startsWith("https://docs.")) {
-        setTimeout(addDownloadButtonInSidebar, 200);
-        setTimeout(async () => {
-            if (await GM.getValue("autoDownload", false)) {
-                openDocviewerAndStartDownload();
-            }
-        }, 1000);
-        return;
-    }
+  // download button in sidebar
+  if (url.startsWith("https://docs.")) {
+    setTimeout(addDownloadButtonInSidebar, 200);
+    setTimeout(async () => {
+      if (await GM.getValue("autoDownload", false)) {
+        openDocviewerAndStartDownload();
+      }
+    }, 1000);
+    return;
+  }
 
-    // download pdf
-    if (url.startsWith("https://docviewer.") && window.self === window.top) {
-        var info = getFileInfo();
-        downloadPdf(info);
-    }
+  // download pdf
+  if (url.startsWith("https://docviewer.") && window.self === window.top) {
+    var info = getFileInfo();
+    downloadPdf(info);
+  }
 })();
 
 function addDownloadButtonInToolbar() {
@@ -118,9 +118,9 @@ function addDownloadButtonInSidebar() {
 }
 
 function openDocviewerAndStartDownload() {
-	const iframe = document.querySelector("iframe");
+  const iframe = document.querySelector("iframe");
   window.open(iframe.src, "_blank");
-  setTimeout(window.close, 5000);
+  //setTimeout(window.close, 5000);
 }
 
 function getFileInfo() {
@@ -169,7 +169,7 @@ function getFileInfo() {
   return info;
 }
 
-async function downloadPdf(info) {
+function downloadPdf(info) {
   document.querySelector("#app").style.display = "none";
 
   const progressBar = document.createElement("progress");
@@ -178,48 +178,68 @@ async function downloadPdf(info) {
   progressBarLabel.innerText = `Скачивание страниц... (0/${info.pages})`;
   progressBarLabel.style.padding = "20px";
   progressBar.style.marginLeft = "20px";
-  progressBar.max = info.pages;
+  progressBar.max = info.pages * 2;
   progressBar.value = 0;
   document.body.appendChild(progressBarLabel);
   document.body.appendChild(progressBar);
+
+  GM.deleteValue("autoDownload");
 
   const pdf = new jspdf.jsPDF({
     orientation: info.orientation,
     unit: "px",
     format: [info.width, info.height],
-    compress: true,
-    hotfixes: ["px_scaling"]
+      compress: true,
+      hotfixes: ["px_scaling"]
   });
 
+  var threads = [];
+  var failed = [];
+  var fails = 0;
+
   for (var i = 0; i < info.pages; i++) {
-    var url = info.url + `bg-${i}.png`;
-    await fetch(url)
-    	.then(response => {
-    		if (!response.ok || response.url.includes("/showcaptcha?")) {
-          if (window.confirm("Решите капчу в новой вкладке.\n\nВНИМАНИЕ: нужно разрешить браузеру показывать всплывающие окна!")) {
-              window.open(url, "_blank");
-              window.confirm("Продолжите после прохождения капчи.");
-          }
-          i--;
-      		return null;
-    		}
-    		return response.bytes();
-  		})
-    	.then(image => {
-      	if (image === null) {
-        	return;
+    threads.push(
+      fetch(info.url + `bg-${i}.png`)
+      .then(response => {
+        if (!response.ok || response.url.includes("/showcaptcha?")) {
+          fails++; // TODO: figure out how to block variable
+          return null;
         }
-      	if (i > 0) { // first page already added
-          pdf.addPage([info.width, info.height], info.orientation);
-        }
-        pdf.addImage(image, "PNG", 0, 0, info.width, info.height);
-      	progressBar.value = i + 1;
-        progressBarLabel.innerText = `Скачивание страниц... (${i + 1}/${info.pages})`;
-      });
+        progressBar.value++;
+        progressBarLabel.innerText = `Скачивание страниц... (${progressBar.value}/${info.pages})`;
+        return response.bytes();
+      })
+    );
   }
 
-  GM.deleteValue("autoDownload");
-  progressBarLabel.innerText = `Сохранение документа...`;
-  await pdf.save(info.filename, "returnPromise");
-  setTimeout(window.close, 5000);
+  Promise.all(threads)
+  .then(async (images) => {
+    if (fails > 0 && window.confirm(`Некоторые страницы (${fails}) не удалось скачать из-за капчи.\n\nКак можно избежать капчи:\n- Перезагружать страницу несколько раз\n- Чистить куки (заходить с режима инкогнито или с других браузеров)\n- Войти в аккаунт Яндекса\n\nПерезагрузить страницу и попробовать снова?`)) {
+      window.location.reload();
+    }
+
+    progressBarLabel.innerText = `Формирование документа... (0/${info.pages})`;
+
+    for (var i = 0; i < images.length; i++) {
+      if (i > 0) { // first page already added
+        pdf.addPage([info.width, info.height], info.orientation);
+      }
+      if (images[i] === null) {
+        failed.push(i + 1);
+      } else {
+        pdf.addImage(images[i], "PNG", 0, 0, info.width, info.height);
+      }
+      progressBar.value++;
+      progressBarLabel.innerText = `Формирование документа... (${i + 1}/${info.pages})`;
+      await new Promise(resolve => setTimeout(resolve, 0)); // updates page after addImage hang
+    }
+  })
+  .then(() => {
+    if (failed.length > 0) {
+      alert("Внимание, некоторые страницы не удалось сохранить: " + failed.join(", "));
+    }
+    progressBarLabel.innerText = `Сохранение документа...`;
+    pdf.save(info.filename);
+  })
+  .then(() => setTimeout(window.close, 5000));
 }
