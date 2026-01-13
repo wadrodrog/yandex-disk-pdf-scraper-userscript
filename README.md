@@ -10,7 +10,7 @@
 Установите юзерскрипт в ваш менеджер юзерскриптов:
 https://github.com/wadrodrog/yandex-disk-pdf-scraper-userscript/raw/refs/heads/main/yandex-disk-pdf-scraper.user.js
 
-- Для Firefox лучше использовать [Greasemonkey](https://addons.mozilla.org/firefox/addon/greasemonkey).
+- Для Firefox лучше использовать [Greasemonkey](https://addons.mozilla.org/firefox/addon/greasemonkey) или [Violentmonkey](https://addons.mozilla.org/firefox/addon/violentmonkey).
 - Для Chromium лучше использовать [Tampermonkey](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo).
     - В Chromium надо разрешить расширению Tampermonkey пользовательские скрипты и включить режим разработчика, чтобы юзерскрипт заработал.
     - Tampermonkey почему-то медленно формирует документ.
