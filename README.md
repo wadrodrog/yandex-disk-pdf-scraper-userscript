@@ -11,8 +11,8 @@
 https://github.com/wadrodrog/yandex-disk-pdf-scraper-userscript/raw/refs/heads/main/yandex-disk-pdf-scraper.user.js
 
 - Для Firefox лучше использовать [Greasemonkey](https://addons.mozilla.org/firefox/addon/greasemonkey) или [Violentmonkey](https://addons.mozilla.org/firefox/addon/violentmonkey).
-- Для Chromium лучше использовать [Tampermonkey](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo).
-    - В Chromium надо разрешить расширению Tampermonkey пользовательские скрипты и включить режим разработчика, чтобы юзерскрипт заработал.
+- Для Chromium лучше использовать [Violentmonkey](https://chromewebstore.google.com/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) (если поддерживается) или [Tampermonkey](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo).
+    - В Chromium для Tampermonkey надо разрешить расширению пользовательские скрипты и включить режим разработчика, чтобы юзерскрипт заработал.
     - Tampermonkey почему-то медленно формирует документ.
 - На Safari пока не было протестировано, но там есть расширение [Userscripts](https://apps.apple.com/app/userscripts/id1463298887).
 - Мобильные версии браузеров не тестировались.
