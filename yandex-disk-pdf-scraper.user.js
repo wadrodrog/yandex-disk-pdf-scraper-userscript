@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yandex Disk PDF Scraper
 // @namespace    http://tampermonkey.net/
-// @version      2026-01-11
+// @version      2026-01-13
 // @description  Downloads undownloadable PDFs from Yandex Disk
 // @author       wadrodrog
 // @match        https://docs.360.yandex.ru/*
@@ -16,7 +16,7 @@
 // @grant        GM.deleteValue
 // ==/UserScript==
 
-(function() {
+(async function() {
   'use strict';
 
   const url = window.location.href;
@@ -44,7 +44,7 @@
 
   // download pdf
   if (url.startsWith("https://docviewer.") && window.self === window.top) {
-    var info = getFileInfo();
+    var info = await getFileInfo();
     downloadPdf(info);
   }
 })();
@@ -67,7 +67,7 @@ function addDownloadButtonInToolbar() {
       button.ariaLabel = "Скачать";
       button.addEventListener("click", bulkDownload);
       buttonIcon.className = "Button2-Icon";
-      buttonIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" focusable="false" fill="none" aria-hidden="true" width="24" height="24" viewBox="0 -960 960 960"><path fill="currentColor" d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>';
+      buttonIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" focusable="false" fill="none" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M2.5 8v1.9c0 1.011.002 1.664.049 2.158.045.471.12.64.172.726a1.5 1.5 0 0 0 .495.495c.085.053.255.127.726.172.494.047 1.147.049 2.158.049h3.8c1.011 0 1.664-.002 2.158-.049.471-.045.64-.12.726-.172a1.5 1.5 0 0 0 .495-.495c.053-.085.127-.255.172-.726.047-.494.049-1.147.049-2.158V8H15v1.9c0 1.964 0 2.946-.442 3.667a3 3 0 0 1-.99.99C12.845 15 11.863 15 9.9 15H6.1c-1.964 0-2.946 0-3.667-.442a3 3 0 0 1-.99-.99C1 12.845 1 11.863 1 9.9V8zm6.25.19 2.22-2.22 1.06 1.06L8 11.06 3.97 7.03l1.06-1.06 2.22 2.22V1h1.5z"></path></svg>';
 
       button.appendChild(buttonIcon);
       container.insertBefore(button, container.firstChild);
@@ -108,7 +108,7 @@ function addDownloadButtonInSidebar() {
   button.autocomplete = "off";
   button.addEventListener("click", openDocviewerAndStartDownload);
   buttonIcon.className = "Button2-Icon Button2-Icon_side_left";
-  buttonIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" focusable="false" fill="none" aria-hidden="true" width="24" height="24" viewBox="0 -960 960 960"><path fill="currentColor" d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>';
+  buttonIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" focusable="false" fill="none" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M2.5 8v1.9c0 1.011.002 1.664.049 2.158.045.471.12.64.172.726a1.5 1.5 0 0 0 .495.495c.085.053.255.127.726.172.494.047 1.147.049 2.158.049h3.8c1.011 0 1.664-.002 2.158-.049.471-.045.64-.12.726-.172a1.5 1.5 0 0 0 .495-.495c.053-.085.127-.255.172-.726.047-.494.049-1.147.049-2.158V8H15v1.9c0 1.964 0 2.946-.442 3.667a3 3 0 0 1-.99.99C12.845 15 11.863 15 9.9 15H6.1c-1.964 0-2.946 0-3.667-.442a3 3 0 0 1-.99-.99C1 12.845 1 11.863 1 9.9V8zm6.25.19 2.22-2.22 1.06 1.06L8 11.06 3.97 7.03l1.06-1.06 2.22 2.22V1h1.5z"></path></svg>';
   buttonLabel.className = "Button2-Text";
   buttonLabel.innerText = "Скачать";
 
@@ -123,14 +123,15 @@ function openDocviewerAndStartDownload() {
   //setTimeout(window.close, 5000);
 }
 
-function getFileInfo() {
+async function getFileInfo() {
   var info = {};
 
-  var container = document.querySelector(".js-doc-page > div");
-  if (container === null && window.self === window.top) {
-    window.location.reload();
-    return;
+  var container = null;
+  while (container === null) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    container = document.querySelector(".js-doc-page > div");
   }
+
   const htmlimage = container.shadowRoot.querySelector(".page_pdf > div > div > img");
   const filename = document.querySelector(".heading-sm");
   const pageCounter = document.querySelector("span[class^=pageCounter]");
