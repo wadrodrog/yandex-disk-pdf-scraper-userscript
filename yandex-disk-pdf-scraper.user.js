@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yandex Disk PDF Scraper
 // @namespace    http://tampermonkey.net/
-// @version      2026-05-30-2
+// @version      2026-05-30-3
 // @description  Downloads undownloadable PDFs from Yandex Disk
 // @author       wadrodrog
 // @match        https://docs.360.yandex.ru/*
@@ -44,8 +44,12 @@
 
   // download pdf
   if (url.startsWith("https://docviewer.") && window.self === window.top) {
-    var info = await getFileInfo();
-    downloadPdf(info);
+    if (document.title.endsWith(".txt")) {
+      setTimeout(addDownloadTxtButton, 2000);
+    } else {
+      var info = await getFileInfo();
+    	downloadPdf(info);
+    }
   }
 })();
 
@@ -237,4 +241,52 @@ function downloadPdf(info) {
     pdf.save(info.filename);
   })
   .then(() => setTimeout(window.close, 5000));
+}
+
+/* TXT downloader */
+
+function addDownloadTxtButton() {
+	const buttonContainer = document.querySelector('.header__side-left');
+  const button = document.createElement("button");
+  
+  button.innerText = "Скачать";
+  button.addEventListener("click", parseTxt);
+  
+  buttonContainer.appendChild(button);
+}
+
+function parseTxt() {
+	//const titleElement = document.querySelector('[class^="titleWrapper_"]');
+  const pagesElement = document.querySelector('[class^="pages_"]').childNodes[1].childNodes;
+  
+  let title = document.title; //titleElement.childNodes[0].innerText;
+  let contents = "";
+  
+  for (let pageElement of pagesElement) {
+    let root = pageElement.childNodes[0].childNodes[0].shadowRoot;
+    let blocks = root.querySelector(".page_text > .b1").childNodes;
+    
+    for (let block of blocks) {
+      contents += block.innerText + "\n\n";
+    }
+  }
+  contents = contents.slice(0, -2);
+  
+  downloadTxt(title, contents);
+  console.log(title);
+  console.log(contents);
+}
+
+function downloadTxt(filename, text) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  URL.revokeObjectURL(url);
 }
