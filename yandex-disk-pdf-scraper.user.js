@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yandex Disk PDF Scraper
 // @namespace    http://tampermonkey.net/
-// @version      2026-01-13
+// @version      2026-05-30-0
 // @description  Downloads undownloadable PDFs from Yandex Disk
 // @author       wadrodrog
 // @match        https://docs.360.yandex.ru/*
@@ -133,7 +133,7 @@ async function getFileInfo() {
   }
 
   const htmlimage = container.shadowRoot.querySelector(".page_pdf > div > div > img");
-  const filename = document.querySelector(".heading-sm");
+  const filename = document.querySelector("#app > .embed-docs .Orb-Text");
   const pageCounter = document.querySelector("span[class^=pageCounter]");
 
   info.filename = filename.innerText;
