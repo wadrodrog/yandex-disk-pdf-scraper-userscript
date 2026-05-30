@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Yandex Disk PDF Scraper
 // @namespace    http://tampermonkey.net/
-// @version      2026-05-30-1
+// @version      2026-05-30-2
 // @description  Downloads undownloadable PDFs from Yandex Disk
 // @author       wadrodrog
 // @match        https://docs.360.yandex.ru/*
@@ -50,7 +50,6 @@
 })();
 
 function addDownloadButtonInToolbar() {
-  const toolbar = document.querySelector(".resources-action-bar");
   document.body.addEventListener("mouseup", function() {
     setTimeout(() => {
       const container = document.querySelector(".hover-dropdown .hover-tooltip__tooltip-anchor");
@@ -59,17 +58,17 @@ function addDownloadButtonInToolbar() {
       }
 
       const button = document.createElement("button");
-      const buttonIcon = document.createElement("span");
 
-      button.className = "Button2 Button2_view_clear-inverse Button2_size_m resources-action-bar__close";
       button.type = "button";
-      button.autocomplete = "off";
+      button.tabindex = 0;
+      button.setAttribute("data-react-aria-pressable", true);
       button.ariaLabel = "Скачать";
+      button.className = "Orb-Button Orb-Button_onlyIcon Orb-Button_size_md Orb-Button_view_static-light-transparent";
+      button.role = "button";
+      button.setAttribute("data-testid", "orb-button");
+      button.innerHTML = '<div class="Orb-Button-Content"><span class="Orb-Button-LeftSlot"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" focusable="false" fill="none" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M2.5 8v1.9c0 1.011.002 1.664.049 2.158.045.471.12.64.172.726a1.5 1.5 0 0 0 .495.495c.085.053.255.127.726.172.494.047 1.147.049 2.158.049h3.8c1.011 0 1.664-.002 2.158-.049.471-.045.64-.12.726-.172a1.5 1.5 0 0 0 .495-.495c.053-.085.127-.255.172-.726.047-.494.049-1.147.049-2.158V8H15v1.9c0 1.964 0 2.946-.442 3.667a3 3 0 0 1-.99.99C12.845 15 11.863 15 9.9 15H6.1c-1.964 0-2.946 0-3.667-.442a3 3 0 0 1-.99-.99C1 12.845 1 11.863 1 9.9V8zm6.25.19 2.22-2.22 1.06 1.06L8 11.06 3.97 7.03l1.06-1.06 2.22 2.22V1h1.5z"></path></svg></span></div>';
       button.addEventListener("click", bulkDownload);
-      buttonIcon.className = "Button2-Icon";
-      buttonIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" focusable="false" fill="none" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M2.5 8v1.9c0 1.011.002 1.664.049 2.158.045.471.12.64.172.726a1.5 1.5 0 0 0 .495.495c.085.053.255.127.726.172.494.047 1.147.049 2.158.049h3.8c1.011 0 1.664-.002 2.158-.049.471-.045.64-.12.726-.172a1.5 1.5 0 0 0 .495-.495c.053-.085.127-.255.172-.726.047-.494.049-1.147.049-2.158V8H15v1.9c0 1.964 0 2.946-.442 3.667a3 3 0 0 1-.99.99C12.845 15 11.863 15 9.9 15H6.1c-1.964 0-2.946 0-3.667-.442a3 3 0 0 1-.99-.99C1 12.845 1 11.863 1 9.9V8zm6.25.19 2.22-2.22 1.06 1.06L8 11.06 3.97 7.03l1.06-1.06 2.22 2.22V1h1.5z"></path></svg>';
 
-      button.appendChild(buttonIcon);
       container.insertBefore(button, container.firstChild);
     }, 100);
   });
